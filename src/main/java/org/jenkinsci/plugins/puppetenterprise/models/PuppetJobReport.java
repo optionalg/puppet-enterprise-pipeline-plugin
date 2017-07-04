@@ -66,7 +66,7 @@ public class PuppetJobReport implements Serializable {
       }
 
       //There will be no metrics if the run failed
-      if (!node.getState().equals("failed")) {
+      if (!node.getState().equals("failed") && !node.getState().equals("errored")) {
         PuppetNodeMetricsV1 metrics = node.getMetrics();
 
         formattedReport.append("  Resource Events: ");
