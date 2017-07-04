@@ -164,6 +164,16 @@ public final class PuppetJobStep extends PuppetEnterpriseStep implements Seriali
           listener.getLogger().println(job.generateReport(step.getReports()));
         } catch(UnknownPuppetJobReportType e) {
           throw new Exception(e.getMessage());
+        } catch(Exception e) {
+          StringBuilder bug = new StringBuilder();
+          bug.append("You found a bug! The Puppet Enterprise plugin received something ");
+          bug.append("in a job report it wasn't expecting. Please file a ticket here: ");
+          bug.append("https://issues.jenkins-ci.org/browse/JENKINS-42899?jql=project%20%3D%20JENKINS%20AND%20component%20%3D%20'puppet-enterprise-pipeline-plugin'\n\n");
+          bug.append("Include the following information:\n");
+          bug.append("Exception Type: " + e.getClass().getSimpleName() + "\n");
+          bug.append("Exception Message: " + e.getMessage() + "\n");
+
+          throw new Exception(bug.toString());
         }
 
         if (job.failed() || job.stopped()) {
