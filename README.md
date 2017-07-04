@@ -187,12 +187,14 @@ code management in Puppet Enterprise, go here: [https://docs.puppet.com/pe/lates
 * reports - The type of reports you'd like to be printed to Jenkins console. See options below Example section. Defaults to nodeSummary. Array of Strings.
 
 **Puppet Enterprise 2016.2 - 2016.3 Parameters**
+
 The following parameters should be used with Puppet Enterprise 2016.2 - 2016.3 for definining the job's run target.
 Note, the target parameter will work with Puppet Enterprise 2016.4+ but has been deprecated.
 
 * target - Target in environment to deploy to. Can be app, app instance, or app component. Defaults to entire environment. String
 
 **Puppet Enterprise 2016.4+ Parameters**
+
 The following parameters should be used with Puppet Enterprise 2016.4+ for definining the job's run scope.
 
 * nodes - An array of nodes to run Puppet on.
@@ -209,9 +211,11 @@ The following parameters should be used with Puppet Enterprise 2016.4+ for defin
   puppet.job 'production', application: Rgbank
   puppet.job 'production', application: Rgbank[phase-1]
   puppet.job 'production', query: 'nodes { certname ~ "substring" and environment = "production" }'
+  puppet.job 'production', reports: ['resourceChanges', 'nodeChanges']
 ```
 
 **Reports**
+
 The following report types are available to be printed to the Jenkins console for each job report.
 Use the `report` parameter. Multiple reports can be selected by using an array.
 
