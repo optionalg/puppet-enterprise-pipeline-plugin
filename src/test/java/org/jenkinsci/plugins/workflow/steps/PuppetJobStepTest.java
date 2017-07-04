@@ -109,6 +109,13 @@ public class PuppetJobStepTest extends Assert {
             .withHeader("Content-Type", "application/json")
             .withBody(TestUtils.getAPIResponseBody(peVersion, "/orchestrator/v1/jobs/711", "job_details.json"))));
 
+    mockOrchestratorService.stubFor(get(urlEqualTo("/orchestrator/v1/jobs/711/report"))
+        .withHeader("X-Authentication", equalTo("super_secret_token_string"))
+        .willReturn(aResponse()
+            .withStatus(200)
+            .withHeader("Content-Type", "application/json")
+            .withBody(TestUtils.getAPIResponseBody(peVersion, "/orchestrator/v1/jobs/711/", "job_report.json"))));
+
     mockOrchestratorService.stubFor(get(urlEqualTo("/orchestrator/v1/jobs/711/nodes"))
         .withHeader("X-Authentication", equalTo("super_secret_token_string"))
         .willReturn(aResponse()
@@ -184,6 +191,9 @@ public class PuppetJobStepTest extends Assert {
             .withHeader("Content-Type", matching("application/json")));
 
         verify(getRequestedFor(urlMatching("/orchestrator/v1/jobs/711"))
+            .withHeader("X-Authentication", matching("super_secret_token_string")));
+
+        verify(getRequestedFor(urlMatching("/orchestrator/v1/jobs/711/report"))
             .withHeader("X-Authentication", matching("super_secret_token_string")));
 
         verify(getRequestedFor(urlMatching("/orchestrator/v1/jobs/711/nodes"))

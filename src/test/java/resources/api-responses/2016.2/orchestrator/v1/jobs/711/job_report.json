@@ -1,0 +1,80 @@
+{
+  "report" : [ {
+    "node" : "database-staging.pdx.puppet.vm",
+    "state" : "finished",
+    "start_timestamp" : "2017-06-05T05:22:17Z",
+    "finish_timestamp" : "2017-06-05T05:22:48Z",
+    "timestamp" : "2017-06-05T05:22:48Z",
+    "events" : [ ]
+  }, {
+    "node" : "database-production.pdx.puppet.vm",
+    "state" : "finished",
+    "start_timestamp" : "2017-06-05T05:22:17Z",
+    "finish_timestamp" : "2017-06-05T05:22:48Z",
+    "timestamp" : "2017-06-05T05:22:48Z",
+    "events" : [ ]
+  }, {
+    "node" : "rgbank-development",
+    "state" : "finished",
+    "start_timestamp" : "2017-06-05T05:22:17Z",
+    "finish_timestamp" : "2017-06-05T05:22:57Z",
+    "timestamp" : "2017-06-05T05:22:57Z",
+    "events" : [ ]
+  }, {
+    "node" : "rgbank-appserver-staging-01.pdx.puppet.vm",
+    "state" : "finished",
+    "start_timestamp" : "2017-06-05T05:22:48Z",
+    "finish_timestamp" : "2017-06-05T05:23:48Z",
+    "timestamp" : "2017-06-05T05:23:48Z",
+    "events" : [ ]
+  }, {
+    "node" : "rgbank-appserver-05.pdx.puppetlabs.vm",
+    "state" : "finished",
+    "start_timestamp" : "2017-06-05T05:22:48Z",
+    "finish_timestamp" : "2017-06-05T05:23:48Z",
+    "timestamp" : "2017-06-05T05:23:48Z",
+    "events" : [ ]
+  }, {
+    "node" : "rgbank-appserver-04.pdx.puppetlabs.vm",
+    "state" : "finished",
+    "start_timestamp" : "2017-06-05T05:22:48Z",
+    "finish_timestamp" : "2017-06-05T05:24:08Z",
+    "timestamp" : "2017-06-05T05:24:08Z",
+    "events" : [ ]
+  }, {
+    "node" : "rgbank-appserver02.pdx.puppetlabs.vm",
+    "state" : "finished",
+    "start_timestamp" : "2017-06-05T05:22:48Z",
+    "finish_timestamp" : "2017-06-05T05:24:08Z",
+    "timestamp" : "2017-06-05T05:24:08Z",
+    "events" : [ ]
+  }, {
+    "node" : "rgbank-appserver03.pdx.puppetlabs.vm",
+    "state" : "finished",
+    "start_timestamp" : "2017-06-05T05:22:48Z",
+    "finish_timestamp" : "2017-06-05T05:24:08Z",
+    "timestamp" : "2017-06-05T05:24:08Z",
+    "events" : [ ]
+  }, {
+    "node" : "rgbank-appserver-01.pdx.puppet.vm",
+    "state" : "finished",
+    "start_timestamp" : "2017-06-05T05:22:48Z",
+    "finish_timestamp" : "2017-06-05T05:24:08Z",
+    "timestamp" : "2017-06-05T05:24:08Z",
+    "events" : [ ]
+  }, {
+    "node" : "rgbank-staging.pdx.puppet.vm",
+    "state" : "finished",
+    "start_timestamp" : "2017-06-05T05:23:48Z",
+    "finish_timestamp" : "2017-06-05T05:24:16Z",
+    "timestamp" : "2017-06-05T05:24:16Z",
+    "events" : [ ]
+  }, {
+    "node" : "rgbank.pdx.puppet.vm",
+    "state" : "finished",
+    "start_timestamp" : "2017-06-05T05:24:08Z",
+    "finish_timestamp" : "2017-06-05T05:24:49Z",
+    "timestamp" : "2017-06-05T05:24:49Z",
+    "events" : [ ]
+  } ]
+}
