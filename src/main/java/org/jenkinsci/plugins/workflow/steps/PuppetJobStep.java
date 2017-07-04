@@ -44,6 +44,7 @@ import com.google.gson.internal.LinkedTreeMap;
 
 import org.jenkinsci.plugins.puppetenterprise.PuppetEnterpriseManagement;
 import org.jenkinsci.plugins.puppetenterprise.models.PuppetJob;
+import org.jenkinsci.plugins.puppetenterprise.models.UnknownPuppetJobReportType;
 import org.jenkinsci.plugins.puppetenterprise.apimanagers.puppetorchestratorv1.PuppetOrchestratorException;
 import org.jenkinsci.plugins.puppetenterprise.models.PEException;
 
@@ -57,6 +58,7 @@ public final class PuppetJobStep extends PuppetEnterpriseStep implements Seriali
   private Boolean noop = false;
   private String environment = null;
   private String credentialsId = "";
+  private ArrayList<String> reports = null;
 
   @DataBoundSetter private void setTarget(String target) {
     this.target = Util.fixEmpty(target);
@@ -76,6 +78,10 @@ public final class PuppetJobStep extends PuppetEnterpriseStep implements Seriali
 
   @DataBoundSetter private void setQuery(String query) {
     this.query = query;
+  }
+
+  @DataBoundSetter private void setReports(ArrayList reports) {
+    this.reports = reports;
   }
 
   @DataBoundSetter private void setNodes(ArrayList nodes) {
@@ -114,6 +120,10 @@ public final class PuppetJobStep extends PuppetEnterpriseStep implements Seriali
     return this.noop;
   }
 
+  public ArrayList<String> getReports() {
+    return this.reports;
+  }
+
   @DataBoundConstructor public PuppetJobStep() { }
 
   public static class PuppetJobStepExecution extends AbstractSynchronousStepExecution<Void> {
@@ -144,16 +154,27 @@ public final class PuppetJobStep extends PuppetEnterpriseStep implements Seriali
       }
 
       try {
-        StringBuilder message = new StringBuilder();
         String summary = "";
 
         job.run();
 
-        summary = "Puppet job " + job.getName() + " " + job.getState() + "\n---------\n";
-        message.append(summary);
-        message.append(job.formatReport());
+        summary = "Puppet job " + job.getName() + " " + job.getState() + "\n";
 
-        listener.getLogger().println(job.formatReport());
+        try {
+          listener.getLogger().println(job.generateReport(step.getReports()));
+        } catch(UnknownPuppetJobReportType e) {
+          throw new Exception(e.getMessage());
+        } catch(Exception e) {
+          StringBuilder bug = new StringBuilder();
+          bug.append("You found a bug! The Puppet Enterprise plugin received something ");
+          bug.append("in a job report it wasn't expecting. Please file a ticket here: ");
+          bug.append("https://issues.jenkins-ci.org/browse/JENKINS-42899?jql=project%20%3D%20JENKINS%20AND%20component%20%3D%20'puppet-enterprise-pipeline-plugin'\n\n");
+          bug.append("Include the following information:\n");
+          bug.append("Exception Type: " + e.getClass().getSimpleName() + "\n");
+          bug.append("Exception Message: " + e.getMessage() + "\n");
+
+          throw new Exception(bug.toString());
+        }
 
         if (job.failed() || job.stopped()) {
           throw new Exception(summary);

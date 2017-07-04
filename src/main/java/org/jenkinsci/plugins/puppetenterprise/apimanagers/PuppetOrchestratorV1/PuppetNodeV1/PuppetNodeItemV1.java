@@ -57,7 +57,7 @@ public class PuppetNodeItemV1 {
     private PuppetNodeMetricsV1 metrics = null;
     private String message = "";
     private String hash = "";
-    private String environment = "";
+    private String environment = null;
 
     public URL getReportURL() {
       return this.reportUrl;

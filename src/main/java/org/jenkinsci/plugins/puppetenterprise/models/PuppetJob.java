@@ -5,8 +5,10 @@ import java.util.*;
 import org.jenkinsci.plugins.puppetenterprise.apimanagers.puppetorchestratorv1.PuppetOrchestratorException;
 import org.jenkinsci.plugins.puppetenterprise.apimanagers.puppetorchestratorv1.PuppetCommandDeployV1;
 import org.jenkinsci.plugins.puppetenterprise.apimanagers.puppetorchestratorv1.PuppetJobsIDV1;
+import org.jenkinsci.plugins.puppetenterprise.apimanagers.puppetorchestratorv1.puppetjobreportv1.*;
 import org.jenkinsci.plugins.puppetenterprise.apimanagers.puppetorchestratorv1.puppetnodev1.*;
 import org.jenkinsci.plugins.puppetenterprise.apimanagers.PERequest;
+import org.jenkinsci.plugins.puppetenterprise.models.UnknownPuppetJobReportType;
 import com.google.gson.internal.LinkedTreeMap;
 
 public class PuppetJob {
@@ -14,6 +16,7 @@ public class PuppetJob {
   private String name = null;
   private String token = null;
   private ArrayList<PuppetNodeItemV1> nodes = null;
+  private ArrayList<PuppetJobReportNodeV1> report = null;
   private Integer nodeCount = null;
   private LinkedTreeMap scope = new LinkedTreeMap();
   private String target = null;
@@ -97,6 +100,7 @@ public class PuppetJob {
     } while(isRunning());
 
     updateNodes();
+    updateReport();
   }
 
   public void start() throws PuppetOrchestratorException, Exception {
@@ -129,6 +133,7 @@ public class PuppetJob {
   public void stop() throws PuppetOrchestratorException, Exception {
     //TODO: Add ability to stop a running job
     updateNodes();
+    updateReport();
   }
 
   public Boolean failed() {
@@ -143,6 +148,50 @@ public class PuppetJob {
     return (!this.state.equals("finished") && !this.state.equals("stopped") && !this.state.equals("failed"));
   }
 
+  public Integer getNodeCount() {
+    return this.nodeCount;
+  }
+
+  public LinkedTreeMap getScope() {
+    return this.scope;
+  }
+
+  public String getTarget() {
+    return this.target;
+  }
+
+  public String getEnvironment() {
+    return this.environment;
+  }
+
+  public Integer getConcurrency() {
+    return this.concurrency;
+  }
+
+  public Boolean getEnforceEnvironment() {
+    return this.enforceEnvironment;
+  }
+
+  public Boolean getDebug() {
+    return this.debug;
+  }
+
+  public Boolean getTrace() {
+    return this.trace;
+  }
+
+  public Boolean getNoop() {
+    return this.noop;
+  }
+
+  public Boolean getEvalTrace() {
+    return this.evalTrace;
+  }
+
+  public PuppetJobReport generateRunReport() {
+    return new PuppetJobReport(this);
+  }
+
   public void updateState() throws PuppetOrchestratorException, Exception {
     this.job.setToken(this.token);
     this.job.execute();
@@ -154,66 +203,28 @@ public class PuppetJob {
   public void update() throws PuppetOrchestratorException, Exception {
     updateState();
     updateNodes();
+    updateReport();
+  }
+
+  public ArrayList<PuppetNodeItemV1> getNodes() {
+    return this.nodes;
+  }
+
+  public ArrayList<PuppetJobReportNodeV1> getNodeReports() {
+    return this.report;
+  }
+
+  public String generateReport(ArrayList<String> reports) throws UnknownPuppetJobReportType {
+    PuppetJobReport report = new PuppetJobReport(this);
+    report.setReports(reports);
+    return report.generateReport();
   }
 
   private void updateNodes() throws PuppetOrchestratorException, Exception {
     this.nodes = this.job.getNodes();
   }
 
-  private Boolean isEnvironmentEnforced() {
-    //The orchestrator defaults to true if null, so null is true
-    return (this.enforceEnvironment == null || this.enforceEnvironment);
-  }
-
-  public String formatReport() {
-    StringBuilder formattedReport = new StringBuilder();
-
-    formattedReport.append("Puppet Job Name: " + this.name + "\n");
-    formattedReport.append("State: " + this.state + "\n");
-
-    if (!isEnvironmentEnforced()) {
-      formattedReport.append("Environment: node's assigned environment\n");
-    } else {
-      formattedReport.append("Environment: " + this.environment + "\n");
-    }
-
-    formattedReport.append("Nodes: " + this.nodeCount + "\n\n");
-
-    for (PuppetNodeItemV1 node : this.nodes) {
-      formattedReport.append(node.getName() + "\n");
-
-      if (node.getEnvironment() != null && !isEnvironmentEnforced()) {
-        formattedReport.append("  Environment: " + node.getEnvironment() + "\n");
-      }
-
-      if (node.getMetrics() != null) {
-        PuppetNodeMetricsV1 metrics = node.getMetrics();
-
-        formattedReport.append("  Resource Events: ");
-        formattedReport.append(metrics.getFailed().toString() + " failed   ");
-        formattedReport.append(metrics.getChanged().toString() + " changed   ");
-
-        //PE versions prior to 2016.4 do not include corrective changes
-        if (metrics.getCorrectiveChanged() != null) {
-          formattedReport.append(metrics.getCorrectiveChanged().toString() + " corrective   ");
-        }
-
-        formattedReport.append(metrics.getSkipped().toString() + " skipped    ");
-        formattedReport.append("\n");
-
-        formattedReport.append("  Report URL: " + node.getReportURL().toString() + "\n");
-        formattedReport.append("\n");
-
-      } else {
-        //There's always a message, but it's only useful if the run was not able to take place,
-        //  which we'll know if there are no metrics.
-        if (node.getMessage() != null) {
-          formattedReport.append("  " + node.getMessage() + "\n");
-          formattedReport.append("\n");
-        }
-      }
-    }
-
-    return formattedReport.toString();
+  private void updateReport() throws PuppetOrchestratorException, Exception {
+    this.report = this.job.getReport();
   }
 }
