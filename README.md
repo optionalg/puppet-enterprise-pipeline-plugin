@@ -184,6 +184,7 @@ code management in Puppet Enterprise, go here: [https://docs.puppet.com/pe/lates
 * credentials - ID of the Jenkins Secret text credentials. String. Required if puppet.credentials not used
 * concurrency - Level of maximum concurrency when issuing Puppet runs. Defaults to unlimited. Integer.
 * noop - Whether to run Puppet in noop mode. Defaults to false. Boolean
+* reports - The type of reports you'd like to be printed to Jenkins console. See options below Example section. Defaults to nodeSummary. Array of Strings.
 
 **Puppet Enterprise 2016.2 - 2016.3 Parameters**
 The following parameters should be used with Puppet Enterprise 2016.2 - 2016.3 for definining the job's run target.
@@ -209,6 +210,14 @@ The following parameters should be used with Puppet Enterprise 2016.4+ for defin
   puppet.job 'production', application: Rgbank[phase-1]
   puppet.job 'production', query: 'nodes { certname ~ "substring" and environment = "production" }'
 ```
+
+**Reports**
+The following report types are available to be printed to the Jenkins console for each job report.
+Use the `report` parameter. Multiple reports can be selected by using an array.
+
+- nodeSummary:  Default. Shows a summary of the resource events count with a link to the Puppet Enterprise report.
+- nodeChanges:  A list of every resource event per node.
+- resourceChanges: A list of every resource event and each node that experienced the change event.
 
 ### puppet.hiera
 
