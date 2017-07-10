@@ -16,6 +16,7 @@ class Puppet implements Serializable {
 
   public <V> V query(Map parameters = [:], String query) {
     String credentials
+    String extract
 
     node {
       if (parameters.credentials) {
@@ -28,7 +29,11 @@ class Puppet implements Serializable {
         script.error(message: "No Credentials provided for puppet.query. Specify 'credentials' parameter or use puppet.credentials()")
       }
 
-      script.puppetQuery(query: query, credentialsId: credentials)
+      if(parameters.extract){
+        extract = parameters.extract
+      }
+
+      script.puppetQuery(query: query, credentialsId: credentials, extract: extract)
     }
   }
 
