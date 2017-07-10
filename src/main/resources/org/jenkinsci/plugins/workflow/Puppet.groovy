@@ -50,6 +50,25 @@ class Puppet implements Serializable {
     }
   }
 
+  public <V> V waitForNodes(Map parameters = [:], ArrayList nodes) {
+    String credentials
+
+    node {
+      if (parameters.credentials) {
+        credentials = parameters.credentials
+      } else {
+        credentials = credentialsId
+      }
+
+      try {
+        script.puppetWaitForNodes(nodes: nodes, credentialsId: credentials)
+      } catch(err) {
+        script.error(message: err.message)
+      }
+
+    }
+  }
+
   public <V> V job(Map parameters = [:], String env) {
     String credentials
     String application

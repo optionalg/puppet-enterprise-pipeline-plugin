@@ -4,6 +4,8 @@ import java.io.*;
 import java.util.*;
 import org.jenkinsci.plugins.puppetenterprise.apimanagers.puppetorchestratorv1.PuppetOrchestratorException;
 import org.jenkinsci.plugins.puppetenterprise.apimanagers.puppetorchestratorv1.PuppetCommandDeployV1;
+import org.jenkinsci.plugins.puppetenterprise.apimanagers.puppetorchestratorv1.PuppetInventoryItemV1;
+import org.jenkinsci.plugins.puppetenterprise.apimanagers.puppetorchestratorv1.PuppetInventoryV1;
 import org.jenkinsci.plugins.puppetenterprise.apimanagers.puppetorchestratorv1.PuppetJobsIDV1;
 import org.jenkinsci.plugins.puppetenterprise.apimanagers.puppetorchestratorv1.puppetjobreportv1.*;
 import org.jenkinsci.plugins.puppetenterprise.apimanagers.puppetorchestratorv1.puppetnodev1.*;
@@ -12,6 +14,7 @@ import org.jenkinsci.plugins.puppetenterprise.models.UnknownPuppetJobReportType;
 import com.google.gson.internal.LinkedTreeMap;
 
 public class PuppetJob {
+  private ArrayList<String> inventory = null;
   private String state = null;
   private String name = null;
   private String token = null;
@@ -78,12 +81,36 @@ public class PuppetJob {
     this.evalTrace = evalTrace;
   }
 
+  public void setInventory(ArrayList<String> nodes) {
+    this.inventory = nodes;
+  }
+
+  public ArrayList<String> getInventory() {
+    return this.inventory;
+  }
+
   public String getState() {
     return this.state;
   }
 
   public String getName() {
     return this.name;
+  }
+
+  public Boolean allNodesConnected() throws PuppetOrchestratorException, Exception {
+    PuppetInventoryV1 inventory = new PuppetInventoryV1();
+
+    inventory.setNodes(this.inventory);
+    inventory.setToken(this.token);
+    ArrayList<PuppetInventoryItemV1> inventoryItems = inventory.execute();
+
+    for (PuppetInventoryItemV1 node : inventoryItems) {
+      if (!node.getConnected()) {
+        return false;
+      }
+    }
+
+    return true;
   }
 
   public void run() throws PuppetOrchestratorException, Exception {
