@@ -244,6 +244,8 @@ Use the `report` parameter. Multiple reports can be selected by using an array.
 
 ### puppet.waitForNodes
 
+**NOTE**: This step requires Puppet Enterprise 2016.5+
+
 This pipeline step takes a list of nodes and waits up to 30 minutes for them to join the Puppet Enterprise orchestrator (PXP broker).
 This is useful for dynamically provisioning VMs in the pipeline and waiting for them to be ready before kicking off a Puppet orchestrator job.
 
