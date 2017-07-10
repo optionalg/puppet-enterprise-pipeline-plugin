@@ -242,6 +242,27 @@ Use the `report` parameter. Multiple reports can be selected by using an array.
   puppet.hiera path: 'host.example.com', key: 'hash-example', value: ['a':1, 'bool':false, 'c': 'string']
 ```
 
+### puppet.waitForNodes
+
+This pipeline step takes a list of nodes and waits up to 30 minutes for them to join the Puppet Enterprise orchestrator (PXP broker).
+This is useful for dynamically provisioning VMs in the pipeline and waiting for them to be ready before kicking off a Puppet orchestrator job.
+
+**Procedural pipeline invocation**: puppet.waitForNodes
+
+**Declarative pipeline invocation**: puppetWaitForNodes
+
+**Parameters**
+
+* credentials - ID of the Jenkins Secret text credentials. String. Required if puppet.credentials not used. Use credentialsId for declarative invocation.
+
+**Example**
+
+```
+  puppet.waitForNodes(['artifactory.inf.puppet.vm','database-production.pdx.puppet.vm'])
+  puppet.waitForNodes(['artifactory.inf.puppet.vm','database-production.pdx.puppet.vm'], credentials: 'access-token')
+```
+
+
 # Compatibility
 
 This plugin is compatible with Puppet Enterprise 2016.2+ and Jenkins 1.642.3+
