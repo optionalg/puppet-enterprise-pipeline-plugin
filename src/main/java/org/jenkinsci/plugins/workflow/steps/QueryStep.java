@@ -48,13 +48,22 @@ import org.jenkinsci.plugins.puppetenterprise.models.PEException;
 public final class QueryStep extends PuppetEnterpriseStep implements Serializable {
   private String query = "";
   private String credentialsId = null;
+  private String extract = null;
 
   @DataBoundSetter private void setQuery(String query) {
     this.query = query;
   }
 
+  @DataBoundSetter private void setExtract(String extract) {
+    this.extract = extract;
+  }
+
   public String getQuery() {
     return this.query;
+  }
+
+  public String getExtract() {
+    return this.extract;
   }
 
   @DataBoundConstructor public QueryStep() { }
@@ -68,6 +77,7 @@ public final class QueryStep extends PuppetEnterpriseStep implements Serializabl
     @Override protected ArrayList run() throws Exception {
       PQLQuery query = new PQLQuery();
       ArrayList results = null;
+      ArrayList extractedResults = new ArrayList();
 
       query.setQuery(step.getQuery());
 
@@ -98,6 +108,38 @@ public final class QueryStep extends PuppetEnterpriseStep implements Serializabl
       results = query.getResults();
       Integer size = results.size();
       listener.getLogger().println(step.getQuery() + "\nQuery returned " + size.toString() + " results.");
+
+      //Extract out values if extract parameter is set
+      if (step.getExtract() != null) {
+        LinkedTreeMap currentHash = null;
+        Object value = null;
+
+        for (LinkedTreeMap result : (ArrayList<LinkedTreeMap>) results) {
+          currentHash = result;
+
+          for (String key : step.getExtract().split("\\.")) {
+            if (currentHash instanceof LinkedTreeMap) {
+              if (currentHash.get(key) instanceof LinkedTreeMap) {
+                currentHash = (LinkedTreeMap) currentHash.get(key);
+                value = currentHash.get(key);
+              } else {
+                value = currentHash.get(key);
+                break;
+              }
+
+            } else {
+              value = currentHash.get(key);
+            }
+          }
+
+          //Throw away null values
+          if (value != null) {
+            extractedResults.add(value);
+          }
+        }
+
+        results = extractedResults;
+      }
 
       return results;
     }

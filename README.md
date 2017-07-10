@@ -134,26 +134,25 @@ This method returns an ArrayList object that can be stored in a variable and ite
 
 **Parameters**
 
+* extract - The key to extract from each item that matches the query. Query result items that do not have the key are discarded. Sub-hash keys can be matched using dot syntax (see examples below). String.
 * credentials - The Jenkins credentials storing the PE RBAC token. String. Required if puppet.credentials not used.
 
 **Example**
 
 ```
-  puppet.query 'nodes[certname] { catalog_environment = "staging" }', credentials: 'pe-access-token'
-  results = puppet.query 'inventory[certname] { trusted.extensions.pp_role = "MyApp" }'
+  puppet.query 'nodes { catalog_environment = "staging" }', credentials: 'pe-access-token'
+  results = puppet.query 'inventory { trusted.extensions.pp_role = "MyApp" }'
 
   //The following gets production nodes with failed report, extracts just their
-  // certnames, then groups them by three, and finally runs Puppet on each
-  // group of three.
-  results = puppet.query 'nodes { latest_report_status = "failed" and catalog_environment = "production"}'
-  nodes = []
-  for (Map node : results) {
-    nodes.add(node.certname)
-  }
-  nodesubgroups = nodes.collate(3) //Break results into groups of 3
-  for (String certnames : nodesubgroups ) {
-    puppet.job 'production', nodes: certnames
-  }
+  // certnames, then runs Puppet on them.
+  results = puppet.query 'nodes { latest_report_status = "failed" and catalog_environment = "production"}', extract: 'certname'
+  puppet.job 'production', nodes: results
+
+
+  //The following gets all networking facts and extracts the ip value for the eth0 interfaces.
+  //If a host does not have a eth0 interface, it is discarded.
+  results =  puppet.query 'facts { name = "networking"  }', extract: 'value.interfaces.eth0.ip'
+  // results = ["192.168.0.130", "10.0.0.152", "10.0.0.13"]
 ```
 
 ### puppet.codeDeploy
