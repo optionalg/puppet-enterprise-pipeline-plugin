@@ -19,7 +19,7 @@ public abstract class PuppetEnterpriseStep extends AbstractStepImpl implements S
 
   protected static StringCredentials lookupCredentials(@Nonnull String credentialId) {
     return CredentialsMatchers.firstOrNull(
-      CredentialsProvider.lookupCredentials(StringCredentials.class, Jenkins.getInstance(), ACL.SYSTEM, null),
+      CredentialsProvider.lookupCredentials(StringCredentials.class, Jenkins.getInstance(), ACL.SYSTEM),
       CredentialsMatchers.withId(credentialId)
     );
   }
