@@ -1,50 +1,46 @@
-# Introduction
+### Table of contents
+
+1. [Introduction](#introduction)
+2. [Configuration](#configuration)
+    * [Puppet Master Address](#puppet-master-address)
+    * [Access Token Credentials](#access-token-credentials)
+    * [Hiera](#hiera)
+      * [Hiera 3](#hiera-3)
+      * [Hiera 5](#hiera-5)
+      * [Hiera HTTP Authentication](#hiera-http-authentication)
+      * [Hiera Data Store Permissions](#hiera-data-store-permissions)
+      * [Caution](#caution)
+3. [Pipeline Steps](#pipeline-steps)
+    * [puppet.credentials](#puppetcredentials)
+    * [puppet.query](#puppetquery)
+    * [puppet.codeDeploy](#puppetcodedeploy)
+    * [puppet.job](#puppetjob)
+    * [puppet.hiera](#puppethiera)
+    * [puppet.waitForNodes](#puppetwaitfornodes)
+4. [Compatibility](#compatibility)
+  
+
+## Introduction
 
 This plugin adds Jenkins Pipeline steps for Puppet Enterprise. The provided
 steps make it easy to interface with Puppet Enterprise services such as the
-code management service and orchestrator service.
+Code Manager, PuppetDB, Node Manager, and orchestrator service.
 
-# Features
-
-A Pipeline project can use the provided groovy methods to deploy Puppet code to
-Puppet Enterprise servers and create Puppet orchestrator jobs.
+A Jenkins Pipeline project can use the provided step methods to deploy Puppet code to
+Puppet Enterprise servers, create Puppet orchestrator jobs, query the infrastructure
+using [Puppet Query Language (PQL)](https://docs.puppet.com/puppetdb/latest/api/query/v4/pql.html)
 
 Puppet Enterprise RBAC access tokens are used to authenticate with the Puppet
-Enterprise APIs, so Puppet itself doesn't have to be configured on the Jenkins
+Enterprise APIs, so Puppet itself doesn't have to be installed or configured on the Jenkins
 server.
 
+**Example**
 ```
 node {
     puppet.credentials 'pe-access-token'
     puppet.codeDeploy 'production'
-    puppet.job 'production', target: 'App[instance]', noop: true, concurrency: 10
+    puppet.job 'production', application: 'App[instance]', noop: true, concurrency: 10
 }
-```
-
-### Experimental Hiera Feature
-
-This plugin also provides an experimental feature that provides a Hiera
-key/value store for Hiera. Key/value pairs are set using the provided
-`puppet.hiera` method.  Pairs are assigned to specific Puppet environments.  The
-[hiera-http](https://github.com/crayfishx/hiera-http)  backend performs a key lookup for the requesting node's
-Puppet environment. An example hiera.yaml configuration:
-
-```
-:backends:
-  - http
-
-:http:
-  :host: jenkins.example.com
-  :port: 8080
-  :output: json
-  :use_auth: true
-  :auth_user: <user>
-  :auth_pass: <pass>
-  :cache_timeout: 10
-  :failure: graceful
-  :paths:
-    - /hiera/lookup?path=%{clientcert}&key=%{key}
-    - /hiera/lookup?path=%{environment}&key=%{key}
 ```
 
 
@@ -74,13 +70,48 @@ being used from the Jenkins Pipeline scripts.
 
 ### Hiera
 
+This plugin provides a Hiera key/value store that Jenkins Pipeline jobs can 
+use to set key/value pairs that Hiera can do lookups on. Key/value pairs are 
+set using the provided [puppet.hiera](#pipeline-steps-puppet.hiera) method. 
+Pairs are assigned to "scopes" which are arbitrary.
+
+##### Hiera 3
+
+For Hiera 3 (included in Puppet Enterprise up until Puppet Enterprise 2017.1),
+this plugin relies on the [hiera-http](https://github.com/crayfishx/hiera-http) backend 
+to perform key lookups.
+
+Below is an example hiera.yaml configuration. To learn more about configurating Hiera in 
+Puppet Enterprise, go to the [docs page](https://docs.puppet.com/hiera/3.3/configuring.html)
+
+```
+:backends:
+  - http
+
+:http:
+  :host: jenkins.example.com
+  :port: 8080
+  :output: json
+  :use_auth: true
+  :auth_user: <user>
+  :auth_pass: <pass>
+  :cache_timeout: 10
+  :failure: graceful
+  :paths:
+    - /hiera/lookup?scope=%{clientcert}&key=%{key}
+    - /hiera/lookup?scope=%{environment}&key=%{key}
+```
+
+##### Hiera 5
+
+** **comming soon** **
+
 #### Hiera HTTP authentication
 
 If Jenkins' Global Security is configured to allow unauthenticated read-only
-access, the 'use_auth', 'auth_pass', and 'auth_user' parameters in the
-hiera.yaml file are unnecessary. Otherwise, create a local Jenkins user that
-has Overall/Read permissions use that user's credentials for the hiera.yaml
-configuration.
+access, it's unnecessary to configure the hiera.yaml to use HTTP authentication. 
+Otherwise, create a user in Jenkins that has Overall/Read permissions and use that user's 
+credentials for the hiera.yaml configuration.
 
 #### Hiera Data Store permissions
 
@@ -88,33 +119,31 @@ If Jenkins' Global Security is configured to use matrix authorization, any user
 with the Hiera/View permission is allowed to view the Hiera Data Store page and
 any user with the Hiera/Delete permission can delete scopes and keys.  
 
-Note, these permissions have no effect on the ability to lookup specificy Hiera
+Note, these permissions have no effect on the ability to lookup specific Hiera
 keys using the /hiera/lookup endpoint.
 
-To set Hiera values from the Jenkins Pipeline script:
+#### Caution
 
-```
-node {
-  puppet.hiera path: 'host.example.com', key: 'keyname', value: 'keyvalue'
-  puppet.hiera path: 'dc-location', key: 'keyname', value: 'keyvalue'
-  puppet.hiera path: 'production', key: 'keyname', value: 'keyvalue'
-}
-```
+The Hiera key/value pairs are stored in an XML file on the
+Jenkins server. There is no audit history of the data and 
+therefor no way toreplicate past values. Also, if the file 
+is lost due to diskfailure, for example, the current values 
+are lost until the necessary pipelins are run again to reset 
+the key/value pairs.
 
-This is experimental because the values are stored in an XML file on the
-Jenkins server.  There is no audit history of the data and therefor no way to
-replicate past values. Also, if the file is lost due to, for example, disk
-failure, the current values are lost.  So only use this if you trust your
-Jenkins server backups and don't care about audit history.
+Only use the Hiera Data Store if you trust your
+Jenkins server backups and don't care about audit 
+history for the Hiera key/value pairs set in Jenkins jobs.
 
 ## Pipeline Steps
 
 ### puppet.credentials
 
 The `puppet.credentials` method sets the Puppet Enterprise RBAC token to be
-used for all other Puppet pipeline step methods.
+used for all other Puppet pipeline step methods. It is only available in 
+[Scripted Pipelines](https://jenkins.io/doc/book/pipeline/syntax/#scripted-pipeline), not [Declarative Pipelines](https://jenkins.io/doc/book/pipeline/syntax/#declarative-pipeline).
 
-**groovy script invocation**: puppet.credentials 'jenkins-credential'
+**Scripted Pipeline invocation**: puppet.credentials 'jenkins-credential-id'
 
 **Example**
 
@@ -124,18 +153,19 @@ used for all other Puppet pipeline step methods.
 
 ### puppet.query
 
-The `puppet.query` method queries PuppetDB using the PQL query language. To
-learn more about PQL, go here:
-[https://docs.puppet.com/puppetdb/4.3/api/query/v4/pql.html]
+The `puppet.query` method queries PuppetDB using the [Puppet Query Language (PQL)](https://docs.puppet.com/puppetdb/5.0/api/query/v4/pql.html).
 
 This method returns an ArrayList object that can be stored in a variable and iterated on.
 
-**groovy script invocation**: puppet.query 'query'
+* **Scripted Pipeline invocation**: puppet.query('query', ...parameters...)
+* **Declarative Pipeline invocation**: puppetQuery('query', ...parameters...)
 
 **Parameters**
 
 * extract - The key to extract from each item that matches the query. Query result items that do not have the key are discarded. Sub-hash keys can be matched using dot syntax (see examples below). String.
-* credentials - The Jenkins credentials storing the PE RBAC token. String. Required if puppet.credentials not used.
+* credentials - The Jenkins credentials storing the PE RBAC token. String. Required if:
+  * puppet.credentials not used in a Scripted Pipeline
+  * the pipeline is a Declarative Pipeline. For declarative pipelines, use "credentialsId".
 
 **Example**
 
@@ -161,11 +191,14 @@ The `puppet.codeDeploy` method tells Puppet Enterprise to deploy new Puppet code
 Hiera data, and modules to a specified Puppet environment. To lean more about
 code management in Puppet Enterprise, go here: [https://docs.puppet.com/pe/latest/code_mgr.html]
 
-**groovy script invocation**: puppet.codeDeploy 'environment'
+* **Scripted Pipeline invocation**: puppet.codeDeploy('environment', ...parameters...)
+* **Declarative Pipeline invocation**: puppetCodeDeploy('environment', ...parameters...)
 
 **Parameters**
 
-* credentials - The Jenkins credentials storing the PE RBAC token. String. Required if puppet.credentials not used.
+* credentials - The Jenkins credentials storing the PE RBAC token. String. Required if:
+  * puppet.credentials not used in a Scripted Pipeline
+  * the pipeline is a Declarative Pipeline
 
 **Example**
 
@@ -176,14 +209,20 @@ code management in Puppet Enterprise, go here: [https://docs.puppet.com/pe/lates
 
 ### puppet.job
 
-**groovy script invocation**: puppet.job('environment')
+The `puppet.job` step method creates [Puppet orcehstrator](https://docs.puppet.com/pe/latest/orchestrator_intro.html) jobs,
+waits for them to finish, and reports on changes that took place, if any.
+
+* **Scripted Pipeline invocation**: puppet.job('environment', ...parameters...)
+* **Declarative Pipeline invocation**: puppetJob('environment', ...parameters...)
 
 **Parameters**
 
-* credentials - ID of the Jenkins Secret text credentials. String. Required if puppet.credentials not used
 * concurrency - Level of maximum concurrency when issuing Puppet runs. Defaults to unlimited. Integer.
 * noop - Whether to run Puppet in noop mode. Defaults to false. Boolean
-* reports - The type of reports you'd like to be printed to Jenkins console. See options below Example section. Defaults to nodeSummary. Array of Strings.
+* reports - The type of reports you'd like to be printed to Jenkins console. See options in **reports** section below. Defaults to nodeSummary. Array of Strings.
+* credentials - The Jenkins credentials storing the PE RBAC token. String. Required if:
+  * puppet.credentials not used in a Scripted Pipeline
+  * the pipeline is a Declarative Pipeline. For declarative pipelines, use "credentialsId".
 
 **Puppet Enterprise 2016.2 - 2016.3 Parameters**
 
@@ -200,19 +239,6 @@ The following parameters should be used with Puppet Enterprise 2016.4+ for defin
 * application - The name of the application to deploy to. Can be all instances or a specific instance. e.g 'MyApp' or 'MyApp[instance-1]'. String.
 * query - The PQL query to determine the list of nodes to run Puppet on. String.
 
-**Example**
-
-```
-  puppet.job 'staging'
-  puppet.job 'production', concurrency: 10, noop: true
-  puppet.job 'production', concurrency: 10, noop: true, credentials: 'pe-access-token'
-  puppet.job 'production', nodes: ['node1.example.com','node2.example.com']
-  puppet.job 'production', application: Rgbank
-  puppet.job 'production', application: Rgbank[phase-1]
-  puppet.job 'production', query: 'nodes { certname ~ "substring" and environment = "production" }'
-  puppet.job 'production', reports: ['resourceChanges', 'nodeChanges']
-```
-
 **Reports**
 
 The following report types are available to be printed to the Jenkins console for each job report.
@@ -222,9 +248,23 @@ Use the `report` parameter. Multiple reports can be selected by using an array.
 - nodeChanges:  A list of every resource event per node.
 - resourceChanges: A list of every resource event and each node that experienced the change event.
 
+**Example**
+
+```
+  puppet.job 'staging'
+  puppet.job 'production', concurrency: 10, noop: true
+  puppet.job 'production', concurrency: 10, noop: true, credentials: 'pe-access-token'
+  puppet.job 'production', nodes: ['node1.example.com','node2.example.com']
+  puppet.job 'production', application: Rgbank
+  puppet.job 'production', application: Rgbank[phase-1]
+  puppet.job 'production', query: 'inventory { certname ~ "substring" and environment = "production" }'
+  puppet.job 'production', reports: ['resourceChanges', 'nodeChanges']
+```
+
 ### puppet.hiera
 
-**groovy script invocation**: puppet.hiera
+* **Scripted Pipeline invocation**: puppet.hiera
+* **Declarative Pipeline invocation**: puppetHiera
 
 **Parameters**
 
@@ -235,10 +275,10 @@ Use the `report` parameter. Multiple reports can be selected by using an array.
 **Example**
 
 ```
-  puppet.hiera path: 'staging', key: 'app-build-version', value: 'master'
-  puppet.hiera path: 'production', key: 'app-build-version', value: '8f3ea2'
-  puppet.hiera path: 'dc1-us-example', key: 'list-example', value: ['a,'b','c']
-  puppet.hiera path: 'host.example.com', key: 'hash-example', value: ['a':1, 'bool':false, 'c': 'string']
+  puppet.hiera scope: 'staging', key: 'app-build-version', value: 'master'
+  puppet.hiera scope: 'production', key: 'app-build-version', value: '8f3ea2'
+  puppet.hiera scope: 'dc1-us-example', key: 'list-example', value: ['a,'b','c']
+  puppet.hiera scope: 'host.example.com', key: 'hash-example', value: ['a':1, 'bool':false, 'c': 'string']
 ```
 
 ### puppet.waitForNodes
@@ -248,13 +288,14 @@ Use the `report` parameter. Multiple reports can be selected by using an array.
 This pipeline step takes a list of nodes and waits up to 30 minutes for them to join the Puppet Enterprise orchestrator (PXP broker).
 This is useful for dynamically provisioning VMs in the pipeline and waiting for them to be ready before kicking off a Puppet orchestrator job.
 
-**Procedural pipeline invocation**: puppet.waitForNodes
-
-**Declarative pipeline invocation**: puppetWaitForNodes
+* **Scripted pipeline invocation**: puppet.waitForNodes
+* **Declarative pipeline invocation**: puppetWaitForNodes
 
 **Parameters**
 
-* credentials - ID of the Jenkins Secret text credentials. String. Required if puppet.credentials not used. Use credentialsId for declarative invocation.
+* credentials - The Jenkins credentials storing the PE RBAC token. String. Required if:
+  * puppet.credentials not used in a Scripted Pipeline
+  * the pipeline is a Declarative Pipeline. For declarative pipelines, use "credentialsId".
 
 **Example**
 
@@ -264,7 +305,7 @@ This is useful for dynamically provisioning VMs in the pipeline and waiting for 
 ```
 
 
-# Compatibility
+## Compatibility
 
 This plugin is compatible with Puppet Enterprise 2016.2+ and Jenkins 1.642.3+
 
