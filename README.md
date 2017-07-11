@@ -81,7 +81,7 @@ For Hiera 3 (included in Puppet Enterprise up until Puppet Enterprise 2017.1),
 this plugin relies on the [hiera-http](https://github.com/crayfishx/hiera-http) backend 
 to perform key lookups.
 
-Below is an example hiera.yaml configuration. To learn more about configurating Hiera in 
+Below is an example hiera.yaml configuration. To learn more about configuring Hiera in 
 Puppet Enterprise, go to the [docs page](https://docs.puppet.com/hiera/3.3/configuring.html)
 
 ```
