@@ -1,3 +1,5 @@
+### Master Build Status:  [![Build Status](https://ci.jenkins.io/buildStatus/icon?job=Plugins/puppet-enterprise-pipeline-plugin/master)](https://ci.jenkins.io/job/Plugins/job/puppet-enterprise-pipeline-plugin/job/master/)
+
 ### Table of contents
 
 1. [Introduction](#introduction)
