@@ -128,9 +128,9 @@ keys using the /hiera/lookup endpoint.
 
 The Hiera key/value pairs are stored in an XML file on the
 Jenkins server. There is no audit history of the data and 
-therefor no way toreplicate past values. Also, if the file 
-is lost due to diskfailure, for example, the current values 
-are lost until the necessary pipelins are run again to reset 
+therefor no way to replicate past values. Also, if the file 
+is lost due to disk failure, for example, the current values 
+are lost until the necessary pipelines are run again to reset 
 the key/value pairs.
 
 Only use the Hiera Data Store if you trust your
